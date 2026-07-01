@@ -1,0 +1,16 @@
+# Hugo 构建产物
+public/
+resources/_gen/
+.hugo_build.lock
+
+# 本地 Hugo 二进制
+hugo-bin/
+
+# 临时文件
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

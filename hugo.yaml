@@ -1,0 +1,117 @@
+baseURL: "https://IWanalq.github.io/"
+languageCode: "zh-cn"
+title: "My Blog"
+theme: "PaperMod"
+defaultContentLanguage: zh
+
+pagination:
+  pagerSize: 5
+
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+minify:
+  disableXML: true
+  minifyOutput: true
+
+# 自动生成 /sitemap.xml、/index.xml（RSS）、/robots.txt
+sitemap:
+  changefreq: weekly
+  filename: sitemap.xml
+  priority: 0.5
+
+params:
+  env: production
+  author: "card"
+  defaultTheme: auto
+  disableThemeToggle: false
+  # 首页信息（取代 banner）
+  homeInfoParams:
+    Title: "My Blog"
+    Content: >
+      记录开发过程中的问题、排查与实现。
+  # 文章页元信息开关
+  ShowReadingTime: true
+  ShowShareButtons: false
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowWordCount: true
+  ShowRssButtonInSectionTermList: false
+  UseHugoToc: true
+  disableSpecial1stPost: true
+  disableScrollToTop: false
+  comments: false
+  hidemeta: false
+  hideSummary: false
+  showtoc: true
+  tocopen: false
+  # SEO
+  description: "card 的个人技术博客，记录开发笔记与思考"
+  keywords: [博客, 技术, 开发笔记]
+  # Open Graph / Twitter Card
+  assets:
+    favicon: "/favicon.ico"
+
+# 主菜单（顶部导航）
+menu:
+  main:
+    - identifier: posts
+      name: 文章
+      url: /posts/
+      weight: 5
+    - identifier: categories
+      name: 分类
+      url: /categories/
+      weight: 10
+    - identifier: tags
+      name: 标签
+      url: /tags/
+      weight: 20
+    - identifier: archives
+      name: 归档
+      url: /archives/
+      weight: 30
+    - identifier: search
+      name: 搜索
+      url: /search/
+      weight: 40
+
+# 输出格式：home 同时输出 HTML + JSON（搜索功能需要 JSON）
+outputs:
+  home:
+    - HTML
+    - JSON
+  section:
+    - HTML
+  taxonomy:
+    - HTML
+  term:
+    - HTML
+
+# 分类与标签
+taxonomies:
+  category: categories
+  tag: tags
+
+# 代码高亮
+pygmentsUseClasses: true
+markup:
+  highlight:
+    noClasses: false
+    lineNos: false
+    codeFences: true
+    guessSyntax: true
+    tabWidth: 2
+  goldmark:
+    renderer:
+      unsafe: true
+    parser:
+      autoHeadingID: true
+      autoHeadingIDType: github
+
+# 永久链接格式：/posts/文件名/
+permalinks:
+  posts: /posts/:contentbasename/
