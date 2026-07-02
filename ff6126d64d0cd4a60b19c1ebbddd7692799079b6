@@ -1,0 +1,4 @@
+博客初始化：
+框架：Hugo v0.157.0 + PaperMod 主题
+部署：GitHub Actions 自动构建到 Pages
+功能：SEO、代码高亮、搜索、RSS、分类标签
