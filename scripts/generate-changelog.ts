@@ -101,7 +101,83 @@ function parseVersion(msg: string): string | null {
 }
 
 function stripVersion(msg: string): string {
+  if (!msg) return "";
   return msg.replace(/^\d+\.\d+\.\d+\s*/, "");
+}
+
+// ─── 思维导图树形路线图 ─────────────────
+
+function buildVersionTree(versions: Commit[]): string {
+  if (versions.length === 0) return "";
+
+  // 按 major.minor 分组
+  const groups = new Map<string, Commit[]>();
+  for (const v of versions) {
+    const key = v.version!.split(".").slice(0, 2).join(".");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(v);
+  }
+
+  // 每组的第一个是主干节点，其余是子节点
+  const trunks: { node: Commit; children: Commit[] }[] = [];
+  for (const [, group] of groups) {
+    group.sort((a, b) => {
+      const ap = parseInt(a.version!.split(".")[2]);
+      const bp = parseInt(b.version!.split(".")[2]);
+      return ap - bp;
+    });
+    trunks.push({ node: group[0], children: group.slice(1) });
+  }
+
+  // 按版本号排序
+  trunks.sort((a, b) => {
+    const [amaj, amin] = a.node.version!.split(".").map(Number);
+    const [bmaj, bmin] = b.node.version!.split(".").map(Number);
+    return amaj !== bmaj ? amaj - bmaj : amin - bmin;
+  });
+
+  function shortSubject(c: Commit): string {
+    const s = stripVersion(c.subject);
+    return s.length > 22 ? s.slice(0, 20) + "…" : s;
+  }
+
+  const lines: string[] = [];
+  const trunkCount = trunks.length;
+
+  // 第一行是根节点
+  const root = trunks[0];
+  const rootVer = root.node.version || "0.0.0";
+  lines.push(`${rootVer.padEnd(8)} ${shortSubject(root.node)}`);
+  lines.push("│");
+
+  // 其余主干节点
+  for (let ti = 1; ti < trunkCount; ti++) {
+    const trunk = trunks[ti];
+    const isLastTrunk = ti === trunkCount - 1;
+    const hasChildren = trunk.children.length > 0;
+    const prefix = isLastTrunk ? "└" : "├";
+
+    if (hasChildren) {
+      // 有子版本的 trunk 用 ┴ 表示有分支
+      lines.push(`${prefix}─ ${trunk.node.version!.padEnd(8)} ${shortSubject(trunk.node)}`);
+      lines.push(`${isLastTrunk ? " " : "│"}  │`);
+
+      // 子节点
+      trunk.children.forEach((child, ci) => {
+        const isLastChild = ci === trunk.children.length - 1;
+        const branch = isLastChild ? "└" : "├";
+        lines.push(`${isLastTrunk ? " " : "│"}  ${branch}── ${child.version!.padEnd(8)} ${shortSubject(child)}`);
+      });
+
+      if (!isLastTrunk) lines.push("│");
+    } else {
+      // 无子版本的 trunk
+      lines.push(`${prefix}─ ${trunk.node.version!.padEnd(8)} ${shortSubject(trunk.node)}`);
+      if (!isLastTrunk) lines.push("│");
+    }
+  }
+
+  return lines.join("\n");
 }
 
 // ─── 生成 changelog ───────────────────────
@@ -117,16 +193,11 @@ function generateChangelog(commits: Commit[], tags: Map<string, string>): string
   lines.push("## 发展路线图");
   lines.push("");
 
-  // ── 路线图 ──
+  // ── 路线图（思维导图树形） ──
   const versions = commits.filter(c => c.isVersionBump);
   if (versions.length > 0) {
     lines.push("```text");
-    versions.forEach((v, i) => {
-      const isLast = i === versions.length - 1;
-      const label = `${v.version}`.padEnd(10);
-      const connector = isLast ? "●" : "●───";
-      lines.push(`${v.date}  ${connector}  ${label}`);
-    });
+    lines.push(buildVersionTree(versions));
     lines.push("```");
     lines.push("");
   }
