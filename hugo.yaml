@@ -1,8 +1,10 @@
 baseURL: "https://IWanalq.github.io/"
 languageCode: "zh-cn"
-title: "My Blog"
+title: "回顾笔记"
 theme: "PaperMod"
 defaultContentLanguage: zh
+copyright: "© card"
+enableGitInfo: true
 
 pagination:
   pagerSize: 5
@@ -27,11 +29,11 @@ params:
   author: "card"
   defaultTheme: auto
   disableThemeToggle: false
-  # 首页信息（取代 banner）
+  # 首页信息
   homeInfoParams:
-    Title: "My Blog"
+    Title: "回顾笔记"
     Content: >
-      记录开发过程中的问题、排查与实现。
+      记录开发中的问题排查、系统优化与工具折腾。AI Agent 工作日志归档。
   # 文章页元信息开关
   ShowReadingTime: true
   ShowShareButtons: false
@@ -49,11 +51,15 @@ params:
   showtoc: true
   tocopen: false
   # SEO
-  description: "card 的个人技术博客，记录开发笔记与思考"
-  keywords: [博客, 技术, 开发笔记]
+  description: "回顾笔记 — 个人技术博客，记录 Windows 优化、开发问题排查与 Agent 工作日志。"
+  keywords: [回顾笔记, 技术博客, Windows 优化, Agent 日志, 开发笔记, Hugo, card]
   # Open Graph / Twitter Card
   assets:
     favicon: "/favicon.ico"
+    favicon16x16: "/favicon-16x16.png"
+    favicon32x32: "/favicon-32x32.png"
+    apple_touch_icon: "/apple-touch-icon.png"
+    safari_pinned_tab: "/safari-pinned-tab.svg"
 
 # 主菜单（顶部导航）
 menu:
