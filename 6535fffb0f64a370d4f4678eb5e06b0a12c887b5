@@ -1,0 +1,5 @@
+新增工作日志专区：
+创建 content/records/ 按年/月/日归档
+每条记录包含 agent 归因、outcome 评估、lessons 反思
+支持 codebuddy/explorer 等多 agent 区分
+顶栏菜单增加「日志」入口
