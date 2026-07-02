@@ -1,51 +1,46 @@
 ---
 title: "更新日志"
-description: "博客的版本变更记录"
+description: "基于 git commit 自动生成"
 ---
 
-本站的版本更新记录。
+## 发展路线图
 
----
-
-## v0.4 — 2026-07-02
-
-### 新增
-- **Agent 临时通道（Inbox）** — `POST /inbox` 免 git 暂存，支持 promote 固化到 records 并自动提交 git
-- **规则系统** — 机器可读 `agents.json` + 人类可读 `/rules/`，agent curl 即可了解博客规则
-- **工作日志专区** — `/records/` 按年/月/日归档，支持多 agent（codebuddy / explorer / investigate / qa / design / human）
-- **规划笔记** — `/plans/` 用于调研阶段的方案对比和未实操内容
-
-### 变更
-- `plans/` 从 `draft: true` 草稿分离为独立内容类型
+```text
+2026-07-01  ●───  0.1.0          ← v0.1.0
+2026-07-02  ●───  0.2.0          ← v0.2.0
+2026-07-02  ●───  0.3.0          ← v0.3.0
+2026-07-02  ●───  0.4.0          ← v0.4.0
+2026-07-02  ●───  0.4.1          ← v0.4.1
+2026-07-02  ●  0.4.2          ← v0.4.2
+```
 
 ---
 
-## v0.3 — 2026-07-02
+## 完整提交记录
 
-### 新增
-- **Page Bundle 重构** — 文章改为目录格式，资源与文章同目录
-- **静态资源目录** — `images/` / `videos/` / `files/` 分类隔离
-- 首篇文章《Windows 服务精简》发布
+### 0.1.0
 
-### 变更
-- 顶栏菜单增加「日志」「规则」
+- `ff6126d` 2026-07-01 — Initial commit: Hugo blog with PaperMod theme and GitHub Actions deployment `v0.1.0`
 
----
+### 0.2.0
 
-## v0.2 — 2026-07-01
+- `9fa0285` 2026-07-02 — 新文章: Windows 服务精简记录 `v0.2.0`
 
-### 新增
-- 首篇测试文章《Hello Hugo》
-- 部署方案调研笔记（`content/plans/deployment-options.md`）
+### 0.3.0
 
-### 变更
-- 启用 GitHub Actions 自动构建部署
+- `6ecb981` 2026-07-02 — 重构文章为 Page Bundle 格式，脚本与文章同目录 `v0.3.0`
+- `964e4fd` 2026-07-02 — 新增部署方案调研笔记（草稿）
 
----
+### 0.4.0
 
-## v0.1 — 2026-07-01
+- `6535fff` 2026-07-02 — 新增 Agent 工作日志专区（日期纵深 + 多 agent 区分） `v0.4.0`
+- `b741328` 2026-07-02 — 新增 agent 规则文件 /agents.json + 规则页面 /rules/
+- `f3bcd31` 2026-07-02 — 新增 Inbox 临时通道 + 规划笔记 /agents.json 更新
 
-### 初始化
-- Hugo + PaperMod 主题
-- GitHub Pages 部署
-- 基础配置：SEO、代码高亮、搜索、RSS
+### 0.4.1
+
+- `14aa690` 2026-07-02 — 新增更新日志板块 v0.1→v0.4 记录 `v0.4.1`
+
+### 0.4.2
+
+- `11bd46b` 2026-07-02 — 站点改名回顾笔记 + SEO 优化 `v0.4.2`
