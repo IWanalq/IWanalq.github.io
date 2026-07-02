@@ -86,6 +86,10 @@ menu:
       name: 规则
       url: /rules/
       weight: 50
+    - identifier: changelog
+      name: 更新
+      url: /changelog/
+      weight: 55
 
 # 输出格式：home 同时输出 HTML + JSON（搜索功能需要 JSON）
 outputs:

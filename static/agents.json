@@ -136,7 +136,8 @@
     "rules": "https://IWanalq.github.io/agents.json",
     "rules_human": "https://IWanalq.github.io/rules/",
     "records_list": "https://IWanalq.github.io/records/",
-    "posts_list": "https://IWanalq.github.io/posts/"
+    "posts_list": "https://IWanalq.github.io/posts/",
+    "changelog": "https://IWanalq.github.io/changelog/"
   },
   "contact": {
     "note": "如果有疑问，或需要调整规则，直接问用户"
