@@ -1,0 +1,133 @@
+{
+  "version": "1.0",
+  "site": {
+    "name": "My Blog",
+    "url": "https://IWanalq.github.io",
+    "repo": "https://github.com/IWanalq/IWanalq.github.io"
+  },
+  "content_types": {
+    "posts": {
+      "path": "/posts/",
+      "directory": "content/posts/",
+      "description": "正式文章（已发布）",
+      "rules": {
+        "requires_confirmation": true,
+        "confirmation_prompt": "确认发布这篇帖子到博客？回复「publish」确认",
+        "front_matter": {
+          "required": ["title", "date", "tags", "categories"],
+          "optional": ["summary", "draft"]
+        },
+        "conventions": [
+          "文件名使用 kebab-case 英文",
+          "图片使用 Page Bundle 模式，与 index.md 同目录",
+          "tag 使用中文标签",
+          "draft: true 的帖子不渲染到线上，仅本地可见",
+          "帖子发布前必须先提交 git commit，等待用户确认后再 push"
+        ]
+      }
+    },
+    "records": {
+      "path": "/records/",
+      "directory": "content/records/",
+      "description": "Agent 工作日志",
+      "rules": {
+        "requires_confirmation": false,
+        "front_matter": {
+          "required": ["title", "date", "agent", "agent_type", "outcome", "commit", "state_before", "state_after", "lessons", "tags"],
+          "optional": ["host", "session_id", "related_posts"]
+        },
+        "conventions": [
+          "文件名：日期-agent-主题.md，放在对应的年/月目录下",
+          "agent 字段取值：codebuddy | explorer | investigate | qa | design | human",
+          "agent_type 取值：coding | research | review | plan | test | design | manual",
+          "outcome 取值：completed | partial | failed | learning",
+          "lessons 是数组，每条一条经验教训，必须填写",
+          "commit 必须关联本次任务的 git commit hash",
+          "state_before / state_after 描述操作前后的上下文快照",
+          "每条记录都应包含一个「反思」「关键决策」段落",
+          "记录与任务代码在同一 commit 中提交"
+        ]
+      }
+    },
+    "plans": {
+      "path": "/plans/",
+      "directory": "content/plans/",
+      "description": "规划笔记（调研阶段，未实操）",
+      "rules": {
+        "requires_confirmation": false,
+        "front_matter": {
+          "required": ["title", "date", "tags", "categories"],
+          "optional": ["summary"]
+        },
+        "conventions": [
+          "用于记录方案对比、调研结论等未实操的内容",
+          "draft: true 表示尚未定稿",
+          "后期决定实施方案后，转为正式 posts"
+        ]
+      }
+    }
+  },
+  "agents": [
+    {
+      "name": "codebuddy",
+      "description": "编码助手：系统优化、代码修改、写文章",
+      "allowed_sections": ["posts", "records", "plans"]
+    },
+    {
+      "name": "explorer",
+      "description": "代码探索与调研：方案评估、技术分析",
+      "allowed_sections": ["records", "plans"]
+    },
+    {
+      "name": "investigate",
+      "description": "系统化调试：Bug 根因分析、问题排查",
+      "allowed_sections": ["records"]
+    },
+    {
+      "name": "qa",
+      "description": "测试与质量：功能测试、UI 审查",
+      "allowed_sections": ["records"]
+    },
+    {
+      "name": "design",
+      "description": "设计咨询：UI/UX 设计、设计系统",
+      "allowed_sections": ["records"]
+    },
+    {
+      "name": "human",
+      "description": "用户手动操作记录",
+      "allowed_sections": ["records"]
+    }
+  ],
+  "workflow": {
+    "new_posts": [
+      "1. 在 content/posts/<article>/index.md 创建文章（Page Bundle）",
+      "2. 填写完整的 front matter，draft 可先设为 true",
+      "3. 提交到 git（git add + git commit），但不要 push",
+      "4. 等待用户二次确认（回复「publish」）",
+      "5. 用户确认后，设置 draft: false（如果之前是 true），然后 git push"
+    ],
+    "new_records": [
+      "1. 任务完成后，在 content/records/<year>/<month>/ 下创建记录文件",
+      "2. 填写完整的 front matter，必须包含 lessons 和 commit",
+      "3. 内容至少包含「任务」「过程」「关键决策」「反思」四个段落",
+      "4. 与本次任务的代码改动在同一 commit 中提交",
+      "5. 记录可以直接推送，无需二次确认"
+    ],
+    "new_plans": [
+      "1. 在 content/plans/ 下创建规划笔记",
+      "2. draft: true 暂不发布",
+      "3. 直接提交即可"
+    ],
+    "push_command": "git -c http.proxy=http://127.0.0.1:3067 push"
+  },
+  "http_endpoints": {
+    "rules": "https://IWanalq.github.io/agents.json",
+    "rules_human": "https://IWanalq.github.io/rules/",
+    "records_list": "https://IWanalq.github.io/records/",
+    "posts_list": "https://IWanalq.github.io/posts/"
+  },
+  "contact": {
+    "note": "如果有疑问，或需要调整规则，直接问用户"
+  }
+}

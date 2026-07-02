@@ -82,6 +82,10 @@ menu:
       name: 日志
       url: /records/
       weight: 45
+    - identifier: rules
+      name: 规则
+      url: /rules/
+      weight: 50
 
 # 输出格式：home 同时输出 HTML + JSON（搜索功能需要 JSON）
 outputs:
