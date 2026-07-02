@@ -1,0 +1,4 @@
+文章结构重构：
+从单文件 content/posts/xxx.md 改为 Page Bundle content/posts/xxx/index.md
+资源（图片、脚本）与文章同目录，便于管理和后续迁移 OSS
+同时创建了 static/ 资源目录规范
