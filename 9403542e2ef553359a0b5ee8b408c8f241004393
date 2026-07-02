@@ -1,0 +1,5 @@
+changelog 自动生成脚本：
+scripts/generate-changelog.ts 基于 git log + tag 自动生成 content/changelog.md
+支持从 commit 正文和 git notes 提取详细变更说明
+路线图根据版本 tag 自动绘制
+推送前运行 deno run -A scripts/generate-changelog.ts 即可更新
