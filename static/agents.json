@@ -121,6 +121,17 @@
     ],
     "push_command": "git -c http.proxy=http://127.0.0.1:3067 push"
   },
+  "inbox": {
+    "endpoint": "http://localhost:3457",
+    "description": "临时通道，免 git 提交。POST 内容到暂存区，审核后固化到 records。",
+    "endpoints": [
+      "POST   /inbox                 写入一条暂存记录（title + content 必填）",
+      "GET    /inbox                 列出所有暂存",
+      "GET    /inbox/{id}            查看单条",
+      "POST   /inbox/{id}/promote    固化到 records（提交 git commit）",
+      "DELETE /inbox/{id}            丢弃暂存"
+    ]
+  },
   "http_endpoints": {
     "rules": "https://IWanalq.github.io/agents.json",
     "rules_human": "https://IWanalq.github.io/rules/",

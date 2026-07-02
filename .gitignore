@@ -14,3 +14,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Agent 临时暂存区（不入 git）
+content/_inbox/
