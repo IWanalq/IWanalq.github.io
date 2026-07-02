@@ -78,6 +78,10 @@ menu:
       name: 搜索
       url: /search/
       weight: 40
+    - identifier: records
+      name: 日志
+      url: /records/
+      weight: 45
 
 # 输出格式：home 同时输出 HTML + JSON（搜索功能需要 JSON）
 outputs:
