@@ -1,0 +1,5 @@
+Inbox 临时通道上线：
+Deno 编写的 HTTP 服务（blog-inbox/inbox.ts），监听 3457 端口
+POST /inbox 免 git 暂存内容到 content/_inbox/
+POST /inbox/:id/promote 固化到 records 并自动提交 git commit
+content/_inbox/ 已加入 .gitignore 不入库
