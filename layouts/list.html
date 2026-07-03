@@ -53,11 +53,16 @@
 
 {{- /* === 热力图：标题后、文章前 === */ -}}
 {{- if and .IsHome (eq $paginator.PageNumber 1) }}
-<div id="ghc-IWanalq" class="ghc-wrap" style="margin:0 0 1.5rem 0;"></div>
+<div id="ghc-IWanalq" class="ghc-wrap"></div>
 <style>
 .ghc-wrap {
   overflow-x:auto;
   position:relative;
+  background:var(--entry);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:var(--gap);
+  margin-bottom:var(--gap);
 }
 .ghc-nav {
   display:flex;align-items:center;justify-content:space-between;
