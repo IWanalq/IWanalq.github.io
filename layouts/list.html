@@ -84,16 +84,17 @@
 .ghc-grid-header { margin-bottom: 4px; }
 .ghc-dow { text-align: center; font-size: 9px; color: var(--secondary); }
 .ghc-cell {
-  height: 22px; border-radius: 3px;
-  cursor: default; display: block;
+  height: 32px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--secondary); cursor: default;
+  position: relative; transition: background 0.15s;
 }
-.ghc-cell.has-post { cursor: pointer; position: relative; }
-.ghc-cell.has-post::after {
-  content: ''; position: absolute; top: 2px; right: 2px;
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--link);
-}
-.ghc-cell.has-post:hover { outline: 2px solid var(--tertiary); outline-offset: -2px; }
+.ghc-cell[data-p="0"] { background: transparent; }
+.ghc-cell[data-p="1"] { background: rgba(0,180,150,0.18); color: var(--primary); }
+.ghc-cell[data-p="2"] { background: rgba(0,180,150,0.45); color: var(--primary); font-weight: 500; }
+.ghc-cell[data-p="3"] { background: rgba(0,180,150,0.82); color: #fff; font-weight: 600; }
+.ghc-cell.has-post { cursor: pointer; }
+.ghc-cell.has-post:hover { outline: 2px solid var(--tertiary); outline-offset: -2px; z-index: 1; }
 .ghc-post-detail {
   margin-top: 8px; padding: 8px 12px;
   background: color-mix(in srgb, var(--entry) 50%, transparent);
@@ -101,11 +102,6 @@
   font-size: 0.9rem;
 }
 .ghc-post-detail a:hover { text-decoration: underline; }
-.ghc-cell[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
-.ghc-cell[data-l="1"]{background:#0e4429;}
-.ghc-cell[data-l="2"]{background:#006d32;}
-.ghc-cell[data-l="3"]{background:#26a641;}
-.ghc-cell[data-l="4"]{background:#39d353;}
 .ghc-cell.empty{background:transparent;}
 .ghc-legend{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:10px;color:var(--secondary);}
 .ghc-legend-box{width:11px;height:11px;border-radius:2px;display:inline-block;}
@@ -174,22 +170,26 @@ var GHC_POSTS_DATA = [
       var cell = cells[i];
       if (cell) {
         var posts = POSTS_BY_DATE[cell.date];
-        var hasPost = posts && posts.length > 0;
+        var nPosts = posts ? posts.length : 0;
+        var postLevel = nPosts === 0 ? 0 : (nPosts === 1 ? 1 : (nPosts === 2 ? 2 : 3));
         var tip = cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions');
-        if (hasPost) tip += '\n📝 ' + posts.map(function(p){ return p.t; }).join(', ');
-        h += '<div class="ghc-cell' + (hasPost?' has-post':'') + '" data-l="' + cell.level + '" title="' + tip + '" data-date="' + cell.date + '"></div>';
+        if (nPosts > 0) tip += ' | 📝 ' + nPosts + ' post' + (nPosts>1?'s':'') + ': ' + posts.map(function(p){ return p.t; }).join(', ');
+        h += '<div class="ghc-cell' + (nPosts>0?' has-post':'') + '" data-p="' + postLevel + '" title="' + tip + '" data-date="' + cell.date + '">' + cell.day + '</div>';
       } else {
         h += '<div class="ghc-cell empty"></div>';
       }
     }
     h += '</div></div>';
 
-    // 文章详情区
+    // 文章详情 + 图例
     h += '<div id="ghc-post-detail" class="ghc-post-detail" style="display:none;"></div>';
-
-    h += '<div class="ghc-legend">Less<div class="ghc-legend-box" style="background:#161b22;"></div>';
-    for(var k=1;k<=4;k++) h += '<div class="ghc-legend-box" style="background:'+['#0e4429','#006d32','#26a641','#39d353'][k-1]+';"></div>';
-    h += 'More</div>';
+    h += '<div class="ghc-legend" style="margin-top:10px;">';
+    h += '<span>Posts</span>';
+    h += '<div class="ghc-legend-box" style="background:transparent;border:1px solid var(--border);"></div><span style="margin-right:6px;">0</span>';
+    h += '<div class="ghc-legend-box" style="background:rgba(0,180,150,0.18);"></div><span style="margin-right:6px;">1</span>';
+    h += '<div class="ghc-legend-box" style="background:rgba(0,180,150,0.45);"></div><span style="margin-right:6px;">2</span>';
+    h += '<div class="ghc-legend-box" style="background:rgba(0,180,150,0.82);"></div><span>3+</span>';
+    h += '</div>';
     return h;
   }
 
