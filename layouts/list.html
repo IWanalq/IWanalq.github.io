@@ -92,49 +92,33 @@
 .ghc-img-fallback+div a{color:var(--link);}
 .ghc-empty{text-align:center;padding:1.5rem;color:var(--secondary);}
 </style>
+<script src="/contrib-data.js"></script>
 <script>
 (function(){
   var el = document.getElementById('ghc-IWanalq');
-  if (!el) return;
+  if (!el || typeof GHC_DATA === 'undefined') {
+    if(el) el.innerHTML = '<a href="https://github.com/IWanalq" target="_blank" class="ghc-img-fallback"><img src="https://ghchart.rshah.org/IWanalq" alt="GitHub Contributions"></a><div style="text-align:center;margin-top:4px;font-size:0.8rem;color:var(--secondary);"><a href="https://github.com/IWanalq" target="_blank" style="color:var(--link);">@IWanalq</a></div>';
+    return;
+  }
 
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var DAYS_SHORT = ['','Mon','','Wed','','Fri',''];
-  var DATA = {}; // date -> level
+  var DATA = GHC_DATA;
   var now = new Date();
   var curY = now.getFullYear(), curM = now.getMonth();
 
-  // 解析 GitHub 贡献表格 → DATA
-  function parseTable(html){
-    var rows = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
-    if (!rows) return;
-    // 第一行是月份标签，跳过
-    for (var i = 1; i < rows.length; i++) {
-      var tds = rows[i].match(/<td[^>]*data-date="([^"]*)"[^>]*data-level="(\d+)"[^>]*>/g);
-      if (!tds) continue;
-      for (var j = 0; j < tds.length; j++) {
-        var d = tds[j].match(/data-date="([^"]*)"/);
-        var l = tds[j].match(/data-level="(\d+)"/);
-        if (d && l) DATA[d[1]] = parseInt(l[1], 10);
-      }
-    }
-  }
-
-  // 获取某月的天数
   function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
 
-  // 渲染一个月视图
   function renderMonth(y,m){
-    var first = new Date(y,m,1).getDay(); // 0=Sun
-    // 转为 Mon=0..Sun=6
+    var first = new Date(y,m,1).getDay();
     first = (first === 0) ? 6 : first - 1;
     var days = daysInMonth(y,m);
-    var total = 0, maxLv = 0;
+    var total = 0;
     var cells = [];
     for (var d = 1; d <= days; d++) {
-      var pad = (y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'));
+      var pad = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
       var lv = DATA[pad] || 0;
       if (lv > 0) total++;
-      if (lv > maxLv) maxLv = lv;
       cells.push({day:d,level:lv,date:pad});
     }
     var h = '<div class="ghc-total">' + total + ' contributions in ' + MONTHS[m] + ' ' + y +
@@ -156,17 +140,14 @@
       h += '</tr>';
     }
     h += '</tbody></table></div>';
-    // legend
     h += '<div class="ghc-legend">Less<div class="ghc-legend-box" style="background:#161b22;"></div>';
     for(var k=1;k<=4;k++) h += '<div class="ghc-legend-box" style="background:'+['#0e4429','#006d32','#26a641','#39d353'][k-1]+';"></div>';
     h += 'More</div>';
     return h;
   }
 
-  // 构建导航 + 内容
   function buildView(){
-    var hasData = Object.keys(DATA).length > 0;
-    var nav = hasData ? '<div class="ghc-nav">' : '<div class="ghc-nav" style="display:none;">';
+    var nav = '<div class="ghc-nav">';
     nav += '<div class="ghc-nav-title">' + MONTHS[curM] + ' ' + curY + '</div>';
     nav += '<div class="ghc-nav-btns">';
     nav += '<button class="yr-btn" onclick="ghcJump('+(curY-1)+','+curM+')">‹‹</button>';
@@ -177,36 +158,17 @@
     nav += '<button onclick="ghcJump('+curY+','+(curM+1)+')">›</button>';
     nav += '<button class="yr-btn" onclick="ghcJump('+(curY+1)+','+curM+')">››</button>';
     nav += '</div></div>';
-
-    if (hasData) {
-      el.innerHTML = nav + renderMonth(curY, curM);
-    } else {
-      el.innerHTML = '<a href="https://github.com/IWanalq" target="_blank" class="ghc-img-fallback"><img src="https://ghchart.rshah.org/IWanalq" alt="GitHub Contributions"></a>' +
-        '<div><a href="https://github.com/IWanalq" target="_blank">@IWanalq</a></div>';
-    }
+    el.innerHTML = nav + renderMonth(curY, curM);
   }
 
-  // 导航跳转
   window.ghcJump = function(y,m){
     if (m < 0) { m = 11; y--; }
     if (m > 11) { m = 0; y++; }
     curY = y; curM = m;
     buildView();
   };
-  window.ghcNav   = window.ghcJump; // alias
 
-  // 获取数据
-  var url = 'https://likeyou.it.eu.org/https://github.com/users/IWanalq/contributions';
-  fetch(url).then(function(r){
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.text();
-  }).then(function(html){
-    parseTable(html);
-    buildView();
-  }).catch(function(e){
-    console.error('[ghchart]', e);
-    buildView(); // 无数据时显示 fallback
-  });
+  buildView();
 })();
 </script>
 {{- end }}
