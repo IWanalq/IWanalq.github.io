@@ -51,43 +51,161 @@
 {{- partial "home_info.html" . }}
 {{- end }}
 
-{{- /* === 热力图：在标题后、文章列表前 === */ -}}
+{{- /* === 热力图：标题后、文章前 === */ -}}
 {{- if and .IsHome (eq $paginator.PageNumber 1) }}
-<div id="ghc-IWanalq" class="ghc-wrap" style="margin:0 0 2rem 0;"></div>
+<div id="ghc-IWanalq" class="ghc-wrap" style="margin:0 0 1.5rem 0;"></div>
 <style>
-.ghc-wrap{overflow-x:auto;padding:0.5rem 0;}
-.ghc-wrap .ContributionCalendar-grid{border-spacing:3px;}
-.ghc-wrap .ContributionCalendar-day{width:11px;height:11px;border-radius:2px;display:inline-block;}
-.ghc-wrap .ContributionCalendar-day[data-level="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
-.ghc-wrap .ContributionCalendar-day[data-level="1"]{background:#0e4429;}
-.ghc-wrap .ContributionCalendar-day[data-level="2"]{background:#006d32;}
-.ghc-wrap .ContributionCalendar-day[data-level="3"]{background:#26a641;}
-.ghc-wrap .ContributionCalendar-day[data-level="4"]{background:#39d353;}
-.ghc-wrap .ContributionCalendar-label{font-size:10px;color:var(--secondary);padding-right:4px;vertical-align:middle;}
-.ghc-wrap .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
-.ghc-fail{text-align:center;padding:0.5rem;color:var(--secondary);font-size:0.9rem;}
-.ghc-header{margin-bottom:8px;}
-.ghc-header a{color:var(--link);}
+.ghc-wrap {
+  overflow-x:auto;
+  position:relative;
+}
+.ghc-nav {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;flex-wrap:wrap;gap:4px;
+}
+.ghc-nav-title { font-size:1rem; font-weight:600; white-space:nowrap; }
+.ghc-nav-btns { display:flex;gap:2px; }
+.ghc-nav button {
+  background:var(--entry);border:1px solid var(--border);color:var(--primary);
+  cursor:pointer;padding:2px 10px;border-radius:4px;font-size:0.85rem;line-height:1.6;
+}
+.ghc-nav button:hover{background:var(--tertiary);}
+.ghc-nav .yr-btn{font-size:0.8rem;padding:2px 8px;}
+.ghc-nav .sel{background:var(--link);color:#fff;border-color:var(--link);}
+
+.ghc-month-grid{display:inline-block;}
+.ghc-month-grid table{border-spacing:2px;}
+.ghc-month-grid td{width:13px;height:13px;border-radius:3px;text-align:center;font-size:0;line-height:0;}
+.ghc-month-grid td[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
+.ghc-month-grid td[data-l="1"]{background:#0e4429;}
+.ghc-month-grid td[data-l="2"]{background:#006d32;}
+.ghc-month-grid td[data-l="3"]{background:#26a641;}
+.ghc-month-grid td[data-l="4"]{background:#39d353;}
+.ghc-month-grid th{font-size:10px;color:var(--secondary);font-weight:400;padding:0 2px;text-align:center;}
+.ghc-month-grid .d-lbl{font-size:9px;color:var(--secondary);padding-right:4px;text-align:right;width:22px;}
+.ghc-legend{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:10px;color:var(--secondary);}
+.ghc-legend-box{width:11px;height:11px;border-radius:2px;display:inline-block;}
+.ghc-total{font-size:14px;color:var(--primary);margin-bottom:6px;}
+.ghc-total a{color:var(--link);}
+.ghc-img-fallback img{display:block;max-width:100%;height:auto;border-radius:6px;background:#0d1117;padding:12px 16px;margin:0 auto;}
+.ghc-img-fallback+div{text-align:center;margin-top:4px;font-size:0.8rem;color:var(--secondary);}
+.ghc-img-fallback+div a{color:var(--link);}
+.ghc-empty{text-align:center;padding:1.5rem;color:var(--secondary);}
 </style>
 <script>
 (function(){
   var el = document.getElementById('ghc-IWanalq');
   if (!el) return;
+
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var DAYS_SHORT = ['','Mon','','Wed','','Fri',''];
+  var DATA = {}; // date -> level
+  var now = new Date();
+  var curY = now.getFullYear(), curM = now.getMonth();
+
+  // 解析 GitHub 贡献表格 → DATA
+  function parseTable(html){
+    var rows = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
+    if (!rows) return;
+    // 第一行是月份标签，跳过
+    for (var i = 1; i < rows.length; i++) {
+      var tds = rows[i].match(/<td[^>]*data-date="([^"]*)"[^>]*data-level="(\d+)"[^>]*>/g);
+      if (!tds) continue;
+      for (var j = 0; j < tds.length; j++) {
+        var d = tds[j].match(/data-date="([^"]*)"/);
+        var l = tds[j].match(/data-level="(\d+)"/);
+        if (d && l) DATA[d[1]] = parseInt(l[1], 10);
+      }
+    }
+  }
+
+  // 获取某月的天数
+  function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
+
+  // 渲染一个月视图
+  function renderMonth(y,m){
+    var first = new Date(y,m,1).getDay(); // 0=Sun
+    // 转为 Mon=0..Sun=6
+    first = (first === 0) ? 6 : first - 1;
+    var days = daysInMonth(y,m);
+    var total = 0, maxLv = 0;
+    var cells = [];
+    for (var d = 1; d <= days; d++) {
+      var pad = (y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'));
+      var lv = DATA[pad] || 0;
+      if (lv > 0) total++;
+      if (lv > maxLv) maxLv = lv;
+      cells.push({day:d,level:lv,date:pad});
+    }
+    var h = '<div class="ghc-total">' + total + ' contributions in ' + MONTHS[m] + ' ' + y +
+      ' — <a href="https://github.com/IWanalq" target="_blank">@IWanalq</a></div>';
+    h += '<div class="ghc-month-grid"><table><thead><tr><th></th>';
+    for (var w = 0; w < 7; w++) h += '<th>' + DAYS_SHORT[w] + '</th>';
+    h += '</tr></thead><tbody>';
+    for (var r = 0; r < 6; r++) {
+      h += '<tr><td class="d-lbl">' + (r % 2 === 0 ? ['日','一','二','三','四','五','六'][r] : '') + '</td>';
+      for (var c = 0; c < 7; c++) {
+        var idx = r * 7 + c - first;
+        if (idx >= 0 && idx < days) {
+          var cl = cells[idx];
+          h += '<td data-l="' + cl.level + '" title="' + cl.date + ': ' + (cl.level===0?'No contributions':cl.level+' contributions') + '"></td>';
+        } else {
+          h += '<td style="border:none;background:transparent;"></td>';
+        }
+      }
+      h += '</tr>';
+    }
+    h += '</tbody></table></div>';
+    // legend
+    h += '<div class="ghc-legend">Less<div class="ghc-legend-box" style="background:#161b22;"></div>';
+    for(var k=1;k<=4;k++) h += '<div class="ghc-legend-box" style="background:'+['#0e4429','#006d32','#26a641','#39d353'][k-1]+';"></div>';
+    h += 'More</div>';
+    return h;
+  }
+
+  // 构建导航 + 内容
+  function buildView(){
+    var hasData = Object.keys(DATA).length > 0;
+    var nav = hasData ? '<div class="ghc-nav">' : '<div class="ghc-nav" style="display:none;">';
+    nav += '<div class="ghc-nav-title">' + MONTHS[curM] + ' ' + curY + '</div>';
+    nav += '<div class="ghc-nav-btns">';
+    nav += '<button class="yr-btn" onclick="ghcJump('+(curY-1)+','+curM+')">‹‹</button>';
+    nav += '<button onclick="ghcJump('+curY+','+(curM-1)+')">‹</button>';
+    var t = new Date();
+    var isNow = (curY===t.getFullYear()&&curM===t.getMonth());
+    nav += '<button style="min-width:56px;" onclick="ghcJump('+t.getFullYear()+','+t.getMonth()+')"'+(isNow?' class="sel"':'')+'>今天</button>';
+    nav += '<button onclick="ghcJump('+curY+','+(curM+1)+')">›</button>';
+    nav += '<button class="yr-btn" onclick="ghcJump('+(curY+1)+','+curM+')">››</button>';
+    nav += '</div></div>';
+
+    if (hasData) {
+      el.innerHTML = nav + renderMonth(curY, curM);
+    } else {
+      el.innerHTML = '<a href="https://github.com/IWanalq" target="_blank" class="ghc-img-fallback"><img src="https://ghchart.rshah.org/IWanalq" alt="GitHub Contributions"></a>' +
+        '<div><a href="https://github.com/IWanalq" target="_blank">@IWanalq</a></div>';
+    }
+  }
+
+  // 导航跳转
+  window.ghcJump = function(y,m){
+    if (m < 0) { m = 11; y--; }
+    if (m > 11) { m = 0; y++; }
+    curY = y; curM = m;
+    buildView();
+  };
+  window.ghcNav   = window.ghcJump; // alias
+
+  // 获取数据
   var url = 'https://likeyou.it.eu.org/https://github.com/users/IWanalq/contributions';
   fetch(url).then(function(r){
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.text();
   }).then(function(html){
-    var m = html.match(/([\d,]+)\s+contributions?\s+in the last year/i);
-    var total = m ? m[0].trim() : '';
-    var t = html.match(/<table[^>]*class="ContributionCalendar-grid"[^>]*>[\s\S]*?<\/table>/);
-    if (!t) { el.innerHTML = '<div class="ghc-fail">贡献图加载失败</div>'; return; }
-    var h = total ? '<div class="ghc-header">' + total + ' — <a href="https://github.com/IWanalq" target="_blank">@IWanalq</a></div>' : '';
-    el.innerHTML = h + '<div style="max-width:100%;overflow-x:auto;">' + t[0] + '</div>';
+    parseTable(html);
+    buildView();
   }).catch(function(e){
     console.error('[ghchart]', e);
-    el.innerHTML = '<a href="https://github.com/IWanalq" target="_blank"><img src="https://ghchart.rshah.org/IWanalq" alt="GitHub Contributions" style="display:block;max-width:100%;height:auto;border-radius:6px;background:#0d1117;padding:12px 16px;margin:0 auto;"></a>' +
-      '<div style="text-align:center;margin-top:4px;font-size:0.8rem;color:var(--secondary);"><a href="https://github.com/IWanalq" target="_blank" style="color:var(--link);">@IWanalq</a></div>';
+    buildView(); // 无数据时显示 fallback
   });
 })();
 </script>
