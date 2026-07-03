@@ -88,3 +88,27 @@ git -c http.proxy=http://127.0.0.1:3067 push
 ```
 
 需要本地 3067 端口代理。
+
+### 部署踩坑：github-pages 环境分支策略
+
+**现象：** `build` job 成功，`deploy` job 失败（`actions/deploy-pages@v4` 报错）。
+
+**根因：** 仓库的 `github-pages` 环境开启了自定义部署分支策略（`custom_branch_policies: true`），但未将 `main` 加入白名单。CI 的 `deploy` job 引用了该环境：
+```yaml
+deploy:
+  environment:
+    name: github-pages
+```
+因此 deployment 被环境策略拒绝。
+
+**解决：**
+1. 重跑 workflow（`gh run rerun <run-id>` 或 GitHub 网页上点 Re-run）— 有时可绕过
+2. 根治：在 GitHub → Settings → Environments → `github-pages` 中，将 `main` 加入部署分支白名单
+3. 或改为 `protected_branches: false` + `custom_branch_policies: false` 放开限制
+
+**识别方法：** API 查询环境配置：
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  https://api.github.com/repos/$OWNER/$REPO/environments/github-pages
+```
+如果 `deployment_branch_policy.custom_branch_policies: true` 且白名单为空，部署必然被拒。
