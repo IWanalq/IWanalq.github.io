@@ -78,16 +78,22 @@
 .ghc-nav .yr-btn{font-size:0.8rem;padding:2px 8px;}
 .ghc-nav .sel{background:var(--link);color:#fff;border-color:var(--link);}
 
-.ghc-month-grid{display:inline-block;}
-.ghc-month-grid table{border-spacing:2px;}
-.ghc-month-grid td{width:13px;height:13px;border-radius:3px;text-align:center;font-size:0;line-height:0;}
-.ghc-month-grid td[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
-.ghc-month-grid td[data-l="1"]{background:#0e4429;}
-.ghc-month-grid td[data-l="2"]{background:#006d32;}
-.ghc-month-grid td[data-l="3"]{background:#26a641;}
-.ghc-month-grid td[data-l="4"]{background:#39d353;}
-.ghc-month-grid th{font-size:10px;color:var(--secondary);font-weight:400;padding:0 2px;text-align:center;}
-.ghc-month-grid .d-lbl{font-size:9px;color:var(--secondary);padding-right:4px;text-align:right;width:22px;}
+.ghc-month-grid { width: 100%; }
+.ghc-grid-header, .ghc-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.ghc-grid-header { margin-bottom: 4px; }
+.ghc-dow { text-align: center; font-size: 10px; color: var(--secondary); }
+.ghc-cell {
+  aspect-ratio: 1; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: transparent; cursor: default;
+}
+.ghc-cell:hover { color: rgba(255,255,255,0.7); }
+.ghc-cell[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
+.ghc-cell[data-l="1"]{background:#0e4429;}
+.ghc-cell[data-l="2"]{background:#006d32;}
+.ghc-cell[data-l="3"]{background:#26a641;}
+.ghc-cell[data-l="4"]{background:#39d353;}
+.ghc-cell.empty{background:transparent;}
 .ghc-legend{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:10px;color:var(--secondary);}
 .ghc-legend-box{width:11px;height:11px;border-radius:2px;display:inline-block;}
 .ghc-total{font-size:14px;color:var(--primary);margin-bottom:6px;}
@@ -115,36 +121,39 @@
   function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
 
   function renderMonth(y,m){
-    var first = new Date(y,m,1).getDay();
-    first = (first === 0) ? 6 : first - 1;
+    var firstDay = new Date(y, m, 1).getDay(); // 0=Sun
     var days = daysInMonth(y,m);
     var total = 0;
+
     var cells = [];
+    for (var i = 0; i < firstDay; i++) cells.push(null);
     for (var d = 1; d <= days; d++) {
       var pad = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
       var lv = DATA[pad] || 0;
       if (lv > 0) total++;
-      cells.push({day:d,level:lv,date:pad});
+      cells.push({day:d, level:lv, date:pad});
     }
+    while (cells.length % 7 !== 0) cells.push(null);
+
     var h = '<div class="ghc-total">' + total + ' contributions in ' + MONTHS[m] + ' ' + y +
       ' — <a href="https://github.com/IWanalq" target="_blank">@IWanalq</a></div>';
-    h += '<div class="ghc-month-grid"><table><thead><tr><th></th>';
-    for (var w = 0; w < 7; w++) h += '<th>' + DAYS_SHORT[w] + '</th>';
-    h += '</tr></thead><tbody>';
-    for (var r = 0; r < 6; r++) {
-      h += '<tr><td class="d-lbl">' + (r % 2 === 0 ? ['日','一','二','三','四','五','六'][r] : '') + '</td>';
-      for (var c = 0; c < 7; c++) {
-        var idx = r * 7 + c - first;
-        if (idx >= 0 && idx < days) {
-          var cl = cells[idx];
-          h += '<td data-l="' + cl.level + '" title="' + cl.date + ': ' + (cl.level===0?'No contributions':cl.level+' contributions') + '"></td>';
-        } else {
-          h += '<td style="border:none;background:transparent;"></td>';
-        }
+
+    var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    h += '<div class="ghc-month-grid">';
+    h += '<div class="ghc-grid-header">';
+    for (var i = 0; i < 7; i++) h += '<div class="ghc-dow">' + dow[i] + '</div>';
+    h += '</div>';
+    h += '<div class="ghc-grid-body">';
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      if (cell) {
+        h += '<div class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"><span>' + cell.day + '</span></div>';
+      } else {
+        h += '<div class="ghc-cell empty"></div>';
       }
-      h += '</tr>';
     }
-    h += '</tbody></table></div>';
+    h += '</div></div>';
+
     h += '<div class="ghc-legend">Less<div class="ghc-legend-box" style="background:#161b22;"></div>';
     for(var k=1;k<=4;k++) h += '<div class="ghc-legend-box" style="background:'+['#0e4429','#006d32','#26a641','#39d353'][k-1]+';"></div>';
     h += 'More</div>';
