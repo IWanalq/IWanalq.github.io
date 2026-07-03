@@ -80,15 +80,13 @@
 .home-info.first-entry{min-height:auto;margin-bottom:var(--gap);}
 
 .ghc-month-grid { width: 100%; }
-.ghc-grid-header, .ghc-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.ghc-grid-header, .ghc-grid-body { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .ghc-grid-header { margin-bottom: 4px; }
-.ghc-dow { text-align: center; font-size: 10px; color: var(--secondary); }
+.ghc-dow { text-align: center; font-size: 9px; color: var(--secondary); }
 .ghc-cell {
-  aspect-ratio: 1; border-radius: 4px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: transparent; cursor: default;
+  height: 22px; border-radius: 3px;
+  cursor: default;
 }
-.ghc-cell:hover { color: rgba(255,255,255,0.7); }
 .ghc-cell[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
 .ghc-cell[data-l="1"]{background:#0e4429;}
 .ghc-cell[data-l="2"]{background:#006d32;}
@@ -148,7 +146,7 @@
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       if (cell) {
-        h += '<div class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"><span>' + cell.day + '</span></div>';
+        h += '<div class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"></div>';
       } else {
         h += '<div class="ghc-cell empty"></div>';
       }
