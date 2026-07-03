@@ -85,8 +85,10 @@
 .ghc-dow { text-align: center; font-size: 9px; color: var(--secondary); }
 .ghc-cell {
   height: 22px; border-radius: 3px;
-  cursor: default;
+  cursor: default; display: block;
 }
+a.ghc-cell { cursor: pointer; }
+a.ghc-cell:hover { outline: 2px solid var(--tertiary); outline-offset: -2px; }
 .ghc-cell[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
 .ghc-cell[data-l="1"]{background:#0e4429;}
 .ghc-cell[data-l="2"]{background:#006d32;}
@@ -103,6 +105,14 @@
 .ghc-empty{text-align:center;padding:1.5rem;color:var(--secondary);}
 </style>
 <script src="/contrib-data.js"></script>
+<script>
+var GHC_POSTS = {
+{{- range where (where site.RegularPages "Type" "in" site.Params.mainSections) "Draft" "!=" true }}
+  {{- $d := .Date.Format "2006-01-02" }}
+  "{{ $d }}": "{{ .RelPermalink }}",
+{{- end }}
+};
+</script>
 <script>
 (function(){
   var el = document.getElementById('ghc-IWanalq');
@@ -146,7 +156,9 @@
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       if (cell) {
-        h += '<div class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"></div>';
+        var url = GHC_POSTS[cell.date];
+        h += url ? '<a href="' + url + '" class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"></a>'
+                 : '<div class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"></div>';
       } else {
         h += '<div class="ghc-cell empty"></div>';
       }
