@@ -1,0 +1,35 @@
+<style>
+/* ===== 已读/未读 ===== */
+@keyframes pulse-read { 0%,100%{opacity:1} 50%{opacity:0.7} }
+.post-entry.read { opacity:0.6; border-left:3px solid var(--link); }
+.post-entry:not(.read) { animation:pulse-read 3s ease-in-out infinite; }
+
+/* ===== 更新页 - 版本侧边栏 ===== */
+.cl-sidebar {
+  position:fixed; right:20px; top:120px; width:180px; max-height:60vh; overflow-y:auto;
+  background:var(--code-bg); border:1px solid var(--border); border-radius:8px;
+  padding:12px; font-size:.85rem; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.cl-sidebar h3 { margin:0 0 8px; font-size:.9rem; color:var(--primary); border-bottom:1px solid var(--border); padding-bottom:6px; }
+.cl-sidebar ul { list-style:none; margin:0; padding:0; }
+.cl-sidebar li { margin:4px 0; }
+.cl-sidebar a {
+  display:block; padding:3px 6px; border-radius:4px; text-decoration:none;
+  color:var(--secondary); transition:all .2s; font-size:.8rem;
+}
+.cl-sidebar a:hover, .cl-sidebar a.active { background:var(--link); color:var(--theme); font-weight:600; }
+.cl-sidebar a.read { opacity:.5; }
+
+/* 阅读进度条 */
+.reading-bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--link),var(--primary)); width:0%; z-index:9999; transition:width .1s linear; }
+
+/* 窄屏隐藏 changelog 侧边栏 */
+@media (max-width: 1199px) {
+  .cl-sidebar { display:none; }
+}
+
+/* ===== 文章页 TOC 进度 ===== */
+.toc-done { opacity:.4 !important; }
+.toc-current { font-weight:700 !important; color:var(--link) !important; }
+.read-time { font-size:.85rem; color:var(--secondary); margin:12px 0; padding:8px 12px; background:var(--code-bg); border-radius:6px; border-left:3px solid var(--link); }
+</style>

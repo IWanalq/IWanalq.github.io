@@ -1,0 +1,116 @@
+<script>
+(function(){
+  var path = window.location.pathname;
+
+  /* ── 已读标记 ── */
+  if (path.startsWith('/posts/') && !path.match(/^\/posts\/?$/)) {
+    var urls = JSON.parse(localStorage.getItem('cb_read') || '[]');
+    urls.push(path);
+    localStorage.setItem('cb_read', JSON.stringify([...new Set(urls)]));
+  }
+
+  var readUrls = JSON.parse(localStorage.getItem('cb_read') || '[]');
+  document.querySelectorAll('.post-entry').forEach(function(el){
+    var link = el.querySelector('.entry-link');
+    if (link && readUrls.some(function(u){ return link.getAttribute('href').indexOf(u) !== -1; })) {
+      el.classList.add('read');
+    }
+  });
+
+  /* ── 更新页版本侧边栏 + 进度条 ── */
+  if (path.indexOf('/changelog/') !== -1) {
+    // 阅读进度条
+    var bar = document.createElement('div');
+    bar.className = 'reading-bar';
+    document.body.appendChild(bar);
+    window.addEventListener('scroll', function(){
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (window.scrollY / h * 100) + '%';
+    });
+
+    // 版本侧边栏（h2 section + h3 版本号）
+    var sbItems = [];
+    document.querySelectorAll('.post-content h2, .post-content h3').forEach(function(h){
+      if (h.tagName === 'H2') {
+        sbItems.push({ el: h, label: h.textContent.trim(), id: h.id || '' });
+      } else if (h.tagName === 'H3' && h.textContent.match(/^\d+\.\d+\.\d+/)) {
+        sbItems.push({ el: h, label: h.textContent.trim(), id: h.id || '' });
+      }
+    });
+    if (sbItems.length > 0) {
+      var sb = document.createElement('div');
+      sb.className = 'cl-sidebar';
+      sb.innerHTML = '<h3>目录</h3><ul>' +
+        sbItems.map(function(item){
+          if (!item.id) item.id = item.el.textContent.replace(/[\s.]+/g,'-').replace(/[^a-zA-Z0-9\u4e00-\u9fa5\-]/g,'');
+          item.el.id = item.id;
+          return '<li><a href="#' + item.id + '">' + item.label + '</a></li>';
+        }).join('') + '</ul>';
+      document.body.appendChild(sb);
+
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          var a = sb.querySelector('a[href="#' + e.target.id + '"]');
+          if (a) {
+            if (e.isIntersecting) {
+              sb.querySelectorAll('a.active').forEach(function(x){x.classList.remove('active')});
+              a.classList.add('active');
+            } else {
+              a.classList.remove('active');
+            }
+          }
+        });
+      }, { threshold:0.3 });
+      sbItems.forEach(function(item){ if(item.el.id) observer.observe(item.el); });
+    }
+  }
+
+  /* ── 文章 TOC 阅读进度 + 剩余时间 ── */
+  if (path.startsWith('/posts/') && !path.match(/^\/posts\/?$/)) {
+    var headings = document.querySelectorAll('.post-content h2, .post-content h3');
+    var tocLinks = document.querySelectorAll('.toc a');
+    if (headings.length > 0 && tocLinks.length > 0) {
+      var tocObserver = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          var id = e.target.id;
+          tocLinks.forEach(function(a){
+            a.classList.remove('toc-current', 'toc-done');
+            if (a.getAttribute('href') === '#' + id) {
+              if (e.isIntersecting) a.classList.add('toc-current');
+            }
+          });
+        });
+      }, { threshold:0.3 });
+      headings.forEach(function(h){ tocObserver.observe(h); });
+
+      // 已读标记
+      window.addEventListener('scroll', function(){
+        tocLinks.forEach(function(a){
+          var id = a.getAttribute('href') && a.getAttribute('href').slice(1);
+          var el = id && document.getElementById(id);
+          if (el && el.getBoundingClientRect().top < 0) a.classList.add('toc-done');
+        });
+      });
+
+      // 剩余阅读时间
+      var totalWords = document.querySelector('.post-content') ? document.querySelector('.post-content').textContent.replace(/\s+/g,'').length : 0;
+      var rte = document.createElement('div');
+      rte.className = 'read-time';
+      rte.id = 'read-time';
+      rte.textContent = '⏱ 约 ' + Math.ceil(totalWords / 200) + ' 分钟阅读';
+      var firstH = document.querySelector('.post-content h2, .post-content h3');
+      if (firstH) firstH.parentNode.insertBefore(rte, firstH);
+
+      window.addEventListener('scroll', function(){
+        var remaining = 0, started = false;
+        headings.forEach(function(h){
+          if (h.getBoundingClientRect().top < 200) started = true;
+          if (!started) remaining += h.textContent.length + 200;
+        });
+        var remainMin = Math.max(1, Math.ceil(remaining / 200));
+        if (rte) rte.textContent = '⏱ 剩余约 ' + remainMin + ' 分钟';
+      });
+    }
+  }
+})();
+</script>

@@ -68,10 +68,6 @@ menu:
       name: 文章
       url: /posts/
       weight: 5
-    - identifier: categories
-      name: 分类
-      url: /categories/
-      weight: 10
     - identifier: tags
       name: 标签
       url: /tags/
