@@ -87,8 +87,20 @@
   height: 22px; border-radius: 3px;
   cursor: default; display: block;
 }
-a.ghc-cell { cursor: pointer; }
-a.ghc-cell:hover { outline: 2px solid var(--tertiary); outline-offset: -2px; }
+.ghc-cell.has-post { cursor: pointer; position: relative; }
+.ghc-cell.has-post::after {
+  content: ''; position: absolute; top: 2px; right: 2px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--link);
+}
+.ghc-cell.has-post:hover { outline: 2px solid var(--tertiary); outline-offset: -2px; }
+.ghc-post-detail {
+  margin-top: 8px; padding: 8px 12px;
+  background: color-mix(in srgb, var(--entry) 50%, transparent);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+.ghc-post-detail a:hover { text-decoration: underline; }
 .ghc-cell[data-l="0"]{background:#161b22;outline:1px solid rgba(255,255,255,0.04);}
 .ghc-cell[data-l="1"]{background:#0e4429;}
 .ghc-cell[data-l="2"]{background:#006d32;}
@@ -106,12 +118,11 @@ a.ghc-cell:hover { outline: 2px solid var(--tertiary); outline-offset: -2px; }
 </style>
 <script src="/contrib-data.js"></script>
 <script>
-var GHC_POSTS = {
-{{- range where (where site.RegularPages "Type" "in" site.Params.mainSections) "Draft" "!=" true }}
-  {{- $d := .Date.Format "2006-01-02" }}
-  "{{ $d }}": "{{ .RelPermalink }}",
+var GHC_POSTS_DATA = [
+{{- range $p := where (where site.RegularPages "Type" "in" site.Params.mainSections) "Draft" "!=" true }}
+  { d: "{{ $p.Date.Format "2006-01-02" }}", t: {{ $p.Title | jsonify }}, u: "{{ $p.RelPermalink }}" },
 {{- end }}
-};
+];
 </script>
 <script>
 (function(){
@@ -121,8 +132,14 @@ var GHC_POSTS = {
     return;
   }
 
+  // 建立日期→文章列表索引
+  var POSTS_BY_DATE = {};
+  (typeof GHC_POSTS_DATA !== 'undefined' ? GHC_POSTS_DATA : []).forEach(function(p){
+    if (!POSTS_BY_DATE[p.d]) POSTS_BY_DATE[p.d] = [];
+    POSTS_BY_DATE[p.d].push(p);
+  });
+
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var DAYS_SHORT = ['','Mon','','Wed','','Fri',''];
   var DATA = GHC_DATA;
   var now = new Date();
   var curY = now.getFullYear(), curM = now.getMonth();
@@ -130,7 +147,7 @@ var GHC_POSTS = {
   function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
 
   function renderMonth(y,m){
-    var firstDay = new Date(y, m, 1).getDay(); // 0=Sun
+    var firstDay = new Date(y, m, 1).getDay();
     var days = daysInMonth(y,m);
     var total = 0;
 
@@ -156,20 +173,46 @@ var GHC_POSTS = {
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       if (cell) {
-        var url = GHC_POSTS[cell.date];
-        h += url ? '<a href="' + url + '" class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"></a>'
-                 : '<div class="ghc-cell" data-l="' + cell.level + '" title="' + cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions') + '"></div>';
+        var posts = POSTS_BY_DATE[cell.date];
+        var hasPost = posts && posts.length > 0;
+        var tip = cell.date + ': ' + (cell.level===0?'No contributions':cell.level+' contributions');
+        if (hasPost) tip += '\n📝 ' + posts.map(function(p){ return p.t; }).join(', ');
+        h += '<div class="ghc-cell' + (hasPost?' has-post':'') + '" data-l="' + cell.level + '" title="' + tip + '" data-date="' + cell.date + '"></div>';
       } else {
         h += '<div class="ghc-cell empty"></div>';
       }
     }
     h += '</div></div>';
 
+    // 文章详情区
+    h += '<div id="ghc-post-detail" class="ghc-post-detail" style="display:none;"></div>';
+
     h += '<div class="ghc-legend">Less<div class="ghc-legend-box" style="background:#161b22;"></div>';
     for(var k=1;k<=4;k++) h += '<div class="ghc-legend-box" style="background:'+['#0e4429','#006d32','#26a641','#39d353'][k-1]+';"></div>';
     h += 'More</div>';
     return h;
   }
+
+  // 点击格子展示文章列表
+  document.addEventListener('click', function(e){
+    var cell = e.target.closest('.ghc-cell.has-post');
+    if (!cell) return;
+    var date = cell.dataset.date;
+    var posts = POSTS_BY_DATE[date];
+    if (!posts) return;
+    var detail = document.getElementById('ghc-post-detail');
+    if (!detail) return;
+    if (detail.style.display !== 'none' && detail.dataset.date === date) {
+      detail.style.display = 'none';
+      return;
+    }
+    detail.innerHTML = '<div style="margin:8px 0 4px;font-size:0.85rem;color:var(--secondary);">📅 ' + date + '</div>' +
+      posts.map(function(p){
+        return '<div style="margin:4px 0;"><a href="' + p.u + '" style="color:var(--link);text-decoration:none;font-size:0.95rem;">' + p.t + '</a></div>';
+      }).join('');
+    detail.style.display = 'block';
+    detail.dataset.date = date;
+  });
 
   function buildView(){
     var nav = '<div class="ghc-nav">';
@@ -222,18 +265,19 @@ var GHC_POSTS = {
 </div>
 
 {{- if and (.IsHome) (gt $paginator.TotalPages 1) }}
-<div id="ghc-load-more" style="text-align:center;margin:var(--gap) 0;">
-  <button id="ghc-lm-btn" data-next="2" data-total="{{ $paginator.TotalPages }}"
-    style="background:var(--entry);border:1px solid var(--border);color:var(--primary);
-           cursor:pointer;padding:8px 32px;border-radius:var(--radius);font-size:0.9rem;">
-    Load more
-  </button>
-  <noscript>
-    <nav class="pagination">
-      {{- if $paginator.HasNext }}<a class="next" href="{{ $paginator.Next.URL | absURL }}">{{ i18n "next_page" }}&nbsp;»</a>{{- end }}
-    </nav>
-  </noscript>
+<div id="ghc-load-more" style="display:none;"></div>
+<!-- 骨架屏加载占位 -->
+<div id="ghc-skeleton" style="display:none;margin:var(--gap) 0;">
+  <div class="sk-card"><div class="sk-line sk-w-60">&nbsp;</div><div class="sk-line sk-w-90">&nbsp;</div><div class="sk-line sk-w-40">&nbsp;</div></div>
+  <div class="sk-card"><div class="sk-line sk-w-70">&nbsp;</div><div class="sk-line sk-w-80">&nbsp;</div><div class="sk-line sk-w-50">&nbsp;</div></div>
 </div>
+<!-- 无限滚动哨兵 -->
+<div id="ghc-sentinel" style="height:1px;"></div>
+<noscript>
+  <nav class="pagination">
+    {{- if $paginator.HasNext }}<a class="next" href="{{ $paginator.Next.URL | absURL }}">{{ i18n "next_page" }}&nbsp;»</a>{{- end }}
+  </nav>
+</noscript>
 {{- else if not .IsHome }}{{ if gt $paginator.TotalPages 1 }}
 <footer class="page-footer">
   <nav class="pagination">
@@ -243,30 +287,59 @@ var GHC_POSTS = {
 </footer>
 {{- end }}{{ end }}
 
+<style>
+/* 骨架屏卡片 */
+.sk-card {
+  background:var(--entry); border:1px solid var(--border); border-radius:var(--radius);
+  padding:var(--gap); margin-bottom:var(--gap);
+}
+.sk-line {
+  height: 14px; border-radius: 4px; margin: 8px 0;
+  background: linear-gradient(90deg, var(--border) 25%, var(--tertiary) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: sk-wave 1.5s ease-in-out infinite;
+}
+.sk-w-60 { width: 60%; } .sk-w-70 { width: 70%; }
+.sk-w-80 { width: 80%; } .sk-w-90 { width: 90%; }
+.sk-w-40 { width: 40%; } .sk-w-50 { width: 50%; }
+@keyframes sk-wave {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+</style>
 {{- if .IsHome }}
 <script>
 (function(){
-  var btn = document.getElementById('ghc-lm-btn');
-  if (!btn) return;
-  var pg = 2, total = parseInt(btn.dataset.total, 10);
   var list = document.getElementById('ghc-post-list');
-  var wrap = document.getElementById('ghc-load-more');
-  btn.addEventListener('click',function(){
-    if (pg > total) { wrap.style.display = 'none'; return; }
-    btn.disabled=true; btn.textContent='Loading…';
-    fetch('/page/'+pg+'/').then(function(r){
-      if (!r.ok) throw new Error('HTTP '+r.status);
-      return r.text();
-    }).then(function(html){
-      var d=document.createElement('div'); d.innerHTML=html;
-      d.querySelectorAll('.post-entry').forEach(function(e){ list.appendChild(e); });
-      pg++;
-      if (pg > total) { wrap.style.display = 'none'; return; }
-      btn.disabled=false; btn.textContent='Load more';
-    }).catch(function(e){
-      console.error('[lm]',e); btn.disabled=false; btn.textContent='加载失败，重试';
-    });
-  });
+  var sentinel = document.getElementById('ghc-sentinel');
+  var skeleton = document.getElementById('ghc-skeleton');
+  if (!list || !sentinel) return;
+  var pg = 2, total = {{ $paginator.TotalPages }};
+  var loading = false;
+
+  var obs = new IntersectionObserver(function(entries){
+    if (entries[0].isIntersecting && !loading && pg <= total) {
+      loading = true;
+      skeleton.style.display = 'block';
+      fetch('/page/' + pg + '/').then(function(r){
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      }).then(function(html){
+        var d = document.createElement('div');
+        d.innerHTML = html;
+        d.querySelectorAll('.post-entry').forEach(function(e){ list.appendChild(e); });
+        pg++;
+        skeleton.style.display = 'none';
+        loading = false;
+      }).catch(function(e){
+        console.error('[inf-scroll]', e);
+        skeleton.style.display = 'none';
+        loading = false;
+      });
+    }
+  }, { rootMargin: '200px' });
+
+  obs.observe(sentinel);
 })();
 </script>
 {{- end }}
