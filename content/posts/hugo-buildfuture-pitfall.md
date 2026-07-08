@@ -1,5 +1,5 @@
 ---
-title: "Hugo 踩坑：--buildFuture 让当天文章"消失"了"
+title: "Hugo 踩坑：--buildFuture 让当天文章消失"
 date: 2026-07-09
 draft: false
 tags: ["Hugo", "踩坑", "CI/CD", "GitHub Actions"]
