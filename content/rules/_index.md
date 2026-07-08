@@ -26,6 +26,7 @@ front_matter:
 - 图片用 Page Bundle 模式（与 `index.md` 同目录）
 - 标签用中文
 - `draft: true` 不渲染到线上
+- **当天文章注意**：CI 构建命令已配置 `--buildFuture`，无需额外操作
 
 **发布流程：**
 1. 创建文章、提交 git
@@ -112,3 +113,13 @@ curl -H "Authorization: Bearer $TOKEN" \
   https://api.github.com/repos/$OWNER/$REPO/environments/github-pages
 ```
 如果 `deployment_branch_policy.custom_branch_policies: true` 且白名单为空，部署必然被拒。
+
+### 部署踩坑：Hugo --buildFuture 导致当天文章 404
+
+**现象：** 文章 `draft: false`，`hugo list all` 能识别，但构建后 `public/posts/` 没有页面，访问 404。
+
+**根因：** Hugo 默认不构建 `publishDate` 晚于当前时间的文章。当天的文章 date 设为当天时，被归为 "future" 文章静默跳过，不报错。
+
+**解决：** CI 构建命令已改为 `hugo --gc --minify --buildFuture`
+
+**排查方法：** `hugo list future` 列出所有被归为 future 的文章
